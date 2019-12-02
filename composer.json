@@ -1,0 +1,22 @@
+{
+    "name": "dvandersluijs/infi-aoc-2019",
+    "description": "Solving the Infi AOC 2019",
+    "authors": [
+        {
+            "name": "Danny van der Sluijs",
+            "email": "danny.van.der.sluijs@infi.nl"
+        }
+    ],
+    "require": {
+        "symfony/console": "^5.0",
+        "netresearch/jsonmapper": "^1.6",
+        "doctrine/collections": "^1.6",
+        "monolog/monolog": "^2.0",
+        "graphp/algorithms": "^0.8.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "AoC\\": "src/"
+        }
+    }
+}

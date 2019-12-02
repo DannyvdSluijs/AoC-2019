@@ -1,0 +1,14 @@
+#!/usr/bin/env php
+<?php declare(strict_types=1);
+
+require __DIR__.'/vendor/autoload.php';
+
+use AoC\Infi\Command\Part1;
+use Symfony\Component\Console\Application;
+
+$application = new Application();
+
+$application->add(new \AoC\Infi\Command\Part1());
+$application->add(new \AoC\Infi\Command\Part2());
+
+$application->run();
