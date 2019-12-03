@@ -16,11 +16,11 @@ class Puzzle1 extends Command
         $lines = explode("\n", $content);
 
         $fuel = 0;
-        foreach ($lines as $weigth) {
-            $moduleFuel = $this->calculateModuleFuelRequirement((int) $weigth);
+        foreach ($lines as $weight) {
+            $moduleFuel = $this->calculateModuleFuelRequirement((int) $weight);
             $additionalFuel = $this->calculateFuelForTheFuel($moduleFuel);
             $moduleTotal = $moduleFuel + $additionalFuel;
-            $output->writeln("For module with weight $weigth we need $moduleTotal");
+            $output->writeln("For module with weight $weight we need $moduleTotal");
             $fuel += $moduleTotal;
         }
 
@@ -28,9 +28,9 @@ class Puzzle1 extends Command
         return 1;
     }
 
-    private function calculateModuleFuelRequirement(int $weigth): int
+    private function calculateModuleFuelRequirement(int $weight): int
     {
-        $divided = $weigth / 3;
+        $divided = $weight / 3;
         $floored = floor($divided);
         return max(0, (int) $floored - 2);
     }

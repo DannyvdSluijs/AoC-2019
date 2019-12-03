@@ -9,5 +9,7 @@ $application = new Application();
 
 $application->add(new \AoC\General\Command\Puzzle1());
 $application->add(new \AoC\General\Command\Puzzle2());
+$application->add(new \AoC\General\Command\Puzzle3());
+$application->add(new \AoC\General\Command\Puzzle4());
 
 $application->run();
