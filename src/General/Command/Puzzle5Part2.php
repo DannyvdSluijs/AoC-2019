@@ -6,18 +6,14 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class Puzzle4 extends Command
+class Puzzle5Part2 extends Command
 {
-    protected static $defaultName = 'puzzle-4';
+    protected static $defaultName = 'puzzle-5-part-2';
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-
         return 1;
     }
 
-    private function getPuzzleInput(): string
-    {
-        return '';
-    }
+
 }
