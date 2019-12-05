@@ -17,13 +17,13 @@ class Puzzle2 extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-//        $computer = new RealIntCodeComputer($this->getPuzzleInput());
-//        /* Part one */
-//        $computer->setAddressValue(1, 12);
-//        $computer->setAddressValue(2, 2);
-//
-//        $output->writeln($computer->run($output));
-//        return 1;
+        $computer = new RealIntCodeComputer($this->getPuzzleInput());
+        /* Part one */
+        $computer->setAddressValue(1, 12);
+        $computer->setAddressValue(2, 2);
+
+        $output->writeln($computer->run($output));
+        return 1;
 
         for ($x = 1; $x < 99; $x++) {
             for ($y = 1; $y < 99; $y++) {

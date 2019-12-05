@@ -18,34 +18,101 @@ class RealIntCodeComputer
         $this->puzzleInput[$address] = $value;
     }
 
-    public function run(OutputInterface $output): int
+    public function run(OutputInterface $output, int $programInput): int
     {
-        $commands = array_chunk($this->puzzleInput, 4);
-
         $i = 0;
-        foreach ($commands as $command) {
-            $command[0] = $this->puzzleInput[4 * $i++];
+        $len = count($this->puzzleInput);
+        while($i <= $len) {
+            $command = sprintf('%05s', $this->puzzleInput[$i]);
+            list($modeParam3, $modeParam2, $modeParam1, $opcode1, $opcode2) = str_split($command);
+            $opcode = "$opcode1$opcode2";
 
-            if ($command[0] === '99') {
-                return $this->puzzleInput[0];
+            $output->writeln("I: $i; Command: $command; Opcode: $opcode", OutputInterface::VERBOSITY_VERBOSE);
+
+            if ($opcode === '99') {
+                return (int) $this->puzzleInput[0];
             }
 
-            $inputOne = $this->puzzleInput[$command[1]];
-            $inputTwo = $this->puzzleInput[$command[2]];
+            switch ($opcode) {
+                case '01':
+                    $paramOne = (int) (($modeParam1 === '0') ? $this->puzzleInput[$this->puzzleInput[$i + 1]] : $this->puzzleInput[$i + 1]);
+                    $paramTwo = (int) (($modeParam2 === '0') ? $this->puzzleInput[$this->puzzleInput[$i + 2]] : $this->puzzleInput[$i + 2]);
+                    $position = $this->puzzleInput[$i + 3];
 
-            switch ($command[0]) {
-                case 1:
-                    $this->puzzleInput[$command[3]] = $inputOne + $inputTwo;
+                    $this->puzzleInput[$position] = $paramOne + $paramTwo;
+                    $output->writeln("Adding $paramOne with $paramTwo; Storing at $position");
+                    $i += 4;
                     break;
-                case 2:
-                    $this->puzzleInput[$command[3]] = $inputOne * $inputTwo;
+                case '02':
+                    $paramOne = (int) (($modeParam1 === '0') ? $this->puzzleInput[$this->puzzleInput[$i + 1]] : $this->puzzleInput[$i + 1]);
+                    $paramTwo = ($modeParam2 === '0') ? $this->puzzleInput[$this->puzzleInput[$i + 2]] : $this->puzzleInput[$i + 2];
+                    $position = $this->puzzleInput[$i + 3];
+
+                    $this->puzzleInput[$position] = $paramOne * $paramTwo;
+                    $output->writeln("Multiply $paramOne with $paramTwo; Storing at $position");
+                    $i += 4;
+                    break;
+                case '03':
+                    $position = $this->puzzleInput[$i + 1];
+                    $this->puzzleInput[$position] = $programInput;
+                    $output->writeln("Reading from input: $programInput; Storing at $position");
+                    $i += 2;
+                    break;
+                case '04':
+                    $paramOne = (int) (($modeParam1 === '0') ? $this->puzzleInput[$this->puzzleInput[$i + 1]] : $this->puzzleInput[$i + 1]);
+                    $output->writeln("Diagnostic code $paramOne");
+                    $i += 2;
+                    break;
+                case '05':
+                    $paramOne = (int) (($modeParam1 === '0') ? $this->puzzleInput[$this->puzzleInput[$i + 1]] : $this->puzzleInput[$i + 1]);
+                    $paramTwo = (int) (($modeParam2 === '0') ? $this->puzzleInput[$this->puzzleInput[$i + 2]] : $this->puzzleInput[$i + 2]);
+                    $output->writeln("Jump if true; Param one: $paramOne; Param two: $paramTwo");
+                    if ($paramOne !== 0) {
+                        $i = $paramTwo;
+                        break;
+                    }
+                    $i += 3;
+                    break;
+                case '06':
+                    $paramOne = (int) (($modeParam1 === '0') ? $this->puzzleInput[$this->puzzleInput[$i + 1]] : $this->puzzleInput[$i + 1]);
+                    $paramTwo = (int) (($modeParam2 === '0') ? $this->puzzleInput[$this->puzzleInput[$i + 2]] : $this->puzzleInput[$i + 2]);
+                    $output->writeln("Jump if false; Param one: $paramOne; Param two: $paramTwo");
+                    if ($paramOne === 0) {
+                        $i = $paramTwo;
+                        break;
+                    }
+                    $i += 3;
+                    break;
+                case '07':
+                    $paramOne = (int) (($modeParam1 === '0') ? $this->puzzleInput[$this->puzzleInput[$i + 1]] : $this->puzzleInput[$i + 1]);
+                    $paramTwo = (int) (($modeParam2 === '0') ? $this->puzzleInput[$this->puzzleInput[$i + 2]] : $this->puzzleInput[$i + 2]);
+                    $paramThree = (int) $this->puzzleInput[$i + 3];
+                    $output->writeln("Less than; Param one: $paramOne; Param two: $paramTwo; Param three: $paramThree");
+                    if ($paramOne < $paramTwo) {
+                        $this->puzzleInput[$paramThree] = 1;
+                    } else {
+                        $this->puzzleInput[$paramThree] = 0;
+                    }
+                    $i += 4;
+                    break;
+                case '08':
+                    $paramOne = (int) (($modeParam1 === '0') ? $this->puzzleInput[$this->puzzleInput[$i + 1]] : $this->puzzleInput[$i + 1]);
+                    $paramTwo = (int) (($modeParam2 === '0') ? $this->puzzleInput[$this->puzzleInput[$i + 2]] : $this->puzzleInput[$i + 2]);
+                    $paramThree = (int) $this->puzzleInput[$i + 3];
+                    $output->writeln("Equals; Param one: $paramOne; Param two: $paramTwo; Param three: $paramThree");
+                    if ($paramOne === $paramTwo) {
+                        $this->puzzleInput[$paramThree] = 1;
+                    } else {
+                        $this->puzzleInput[$paramThree] = 0;
+                    }
+                    $i += 4;
                     break;
                 default:
-                    throw new \Exception("No such opcode: $command[0]");
+                    throw new \Exception("No such opcode: $opcode");
             }
         }
 
-        return $this->puzzleInput[0];
+        return (int) $this->puzzleInput[0];
     }
 
 
