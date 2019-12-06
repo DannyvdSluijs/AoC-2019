@@ -13,4 +13,5 @@ class Puzzle6Part2 extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
     }
+
 }
