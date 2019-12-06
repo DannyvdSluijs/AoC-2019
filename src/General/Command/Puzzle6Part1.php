@@ -15,7 +15,6 @@ class Puzzle6Part1 extends Command
         $lines = explode("\n", $this->getPuzzleInput());
         $map =[];
         $distances = ['COM' => 0];
-        $pathsToCom = ['COM' => []];
         foreach ($lines as $line) {
             list($k, $v) = explode(')', $line);
             $map[$v] = $k;
@@ -26,7 +25,6 @@ class Puzzle6Part1 extends Command
             foreach ($map as $outer => $inner) {
                 if (array_key_exists($inner, $distances)) {
                     $newDistance = $distances[$inner] + 1;
-                    $pathsToCom[$outer] = array_merge($pathsToCom[$inner], [$inner]);
                     $output->writeln("Found distance: $newDistance for $outer as that is connected to $inner");
                     $distances[$outer] = $newDistance;
                     unset($map[$inner]);
@@ -37,27 +35,11 @@ class Puzzle6Part1 extends Command
                 $output->writeln('Map size didnt decrease, found the end');
                 array_sum($distances);
                 $output->writeln('Total number of direct and indirect orbits: ' . array_sum($distances));
-                $output->writeln('You: ' . implode(' ', $pathsToCom['YOU']));
-                $output->writeln('You: ' . implode(' ', $pathsToCom['SAN']));
 
-                $i = 0;
-
-                while (true) {
-                    if ($pathsToCom['YOU'][$i] !== $pathsToCom['SAN'][$i]) {
-                        $youCommPathLength = count($pathsToCom['YOU']) - $i;
-                        $sanCommPathLength = count($pathsToCom['SAN']) - $i;
-
-                        $output->writeln('The minimum number of orbital transfers required ' . ($youCommPathLength + $sanCommPathLength));
-
-                        return 1;
-                    }
-
-                    $i++;
-                }
+                return 1;
             }
         }
     }
-
 
     private function getPuzzleInput(): string
     {
