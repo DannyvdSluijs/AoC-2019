@@ -19,5 +19,7 @@ $application->add(new Command\Puzzle6Part1());
 $application->add(new Command\Puzzle6Part2());
 $application->add(new Command\Puzzle7Part1());
 $application->add(new Command\Puzzle7Part2());
+$application->add(new Command\Puzzle8Part1());
+$application->add(new Command\Puzzle8Part2());
 
 $application->run();
