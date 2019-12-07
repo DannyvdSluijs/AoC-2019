@@ -18,11 +18,14 @@ class Puzzle2 extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $computer = new RealIntCodeComputer($this->getPuzzleInput());
+        $in = new \SplQueue();
+        $out = new \SplQueue();
         /* Part one */
         $computer->setAddressValue(1, 12);
         $computer->setAddressValue(2, 2);
+        $computer->run($output, $in, $out);
 
-        $output->writeln($computer->run($output));
+        $output->writeln("Answer: {$out->dequeue()}");
         return 1;
 
         for ($x = 1; $x < 99; $x++) {
@@ -30,8 +33,11 @@ class Puzzle2 extends Command
                 $computer = new RealIntCodeComputer($this->getPuzzleInput());
                 $computer->setAddressValue(1, $x);
                 $computer->setAddressValue(2, $y);
+                $in = new \SplQueue();
+                $out = new \SplQueue();
                 $output->writeln("Running with: Noun: $x; Verb: $y;", OutputInterface::VERBOSITY_VERBOSE);
-                $result = $computer->run($output);
+                $computer->run($output, $in, $out);
+                $result = $out->dequeue();
                 if ($result === 19690720) {
                     $answer = 100 * $x + $y;
                     $output->writeln("Noun: $x; Verb: $y; Answer: $answer");

@@ -14,8 +14,12 @@ class Puzzle5Part1 extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $computer = new RealIntCodeComputer($this->getPuzzleInput());
+        $in = new \SplQueue();
+        $in->enqueue(1);
+        $out = new \SplQueue();
+        $computer->run($output, $in, $out);
 
-        $output->writeln($computer->run($output, 1));
+        $output->writeln($out->dequeue());
         return 1;
     }
 
