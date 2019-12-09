@@ -29,8 +29,8 @@ class Puzzle7Part1 extends Command
                             foreach ([$p1, $p2, $p3, $p4, $p5] as $phaseSetting) {
                                 $computer = new RealIntCodeComputer($this->getPuzzleInput());
                                 $in = new \SplQueue();
-                                $in->enqueue($phaseSetting);
-                                $in->enqueue($inp);
+                                $in->enqueue((string) $phaseSetting);
+                                $in->enqueue((string) $inp);
                                 $out = new \SplQueue();
 
                                 $computer->run($output, $in, $out);

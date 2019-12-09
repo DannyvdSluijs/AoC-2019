@@ -7,116 +7,122 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class RealIntCodeComputer
 {
-    private $puzzleInput;
+    private const PARAMETER_POSITION_MODE = 0;
+    private const PARAMETER_IMMEDIATE_MODE = 1;
+    private const PARAMETER_RELATIVE_MODE = 2;
+
+    private const OPCODE_HALT = 99;
+    private const OPCODE_ADDITION = 1;
+    private const OPCODE_MULTIPLICATION = 2;
+    private const OPCODE_READ_INPUT = 3;
+    private const OPCODE_WRITE_OUTPUT = 4;
+    private const OPCODE_JUMP_IF_TRUE = 5;
+    private const OPCODE_JUMP_IF_FALSE = 6;
+    private const OPCODE_LESS_THEN = 7;
+    private const OPCODE_EQUALS = 8;
+    private const OPCODE_SET_RELATIVE_BASE = 9;
+
+    /** @var array */
+    private $memory = [];
     /** @var bool */
     private $halted = false;
-    private $i =0;
+    /** @var int */
+    private $memoryPointer = 0;
+    /** @var int */
+    private $relativeBase;
+    /** @var OutputInterface */
+    private $output;
 
-    public function __construct(string $puzzleInput)
+    public function __construct(string $program, int $relativeBase = 0)
     {
-        $this->puzzleInput = explode(',', $puzzleInput);
+        foreach (explode(',', $program) as $key => $value) {
+            $this->memory[(string) $key] = $value;
+        }
+        $this->relativeBase = $relativeBase;
     }
 
-    public function setAddressValue(int $address, int $value): void
+    public function setAddressValue(string $address, string $value): void
     {
-        $this->puzzleInput[$address] = $value;
+        $this->memory[$address] = $value;
     }
 
     public function run(OutputInterface $output, splQueue $in, splQueue $out): void
     {
+        $this->output = $output;
+
         if ($this->halted) {
             throw new \Exception('Computer halted');
         }
 
-        $len = count($this->puzzleInput);
-        while($this->i <= $len) {
-            $command = sprintf('%05s', $this->puzzleInput[$this->i]);
-            list($modeParam3, $modeParam2, $modeParam1, $opcode1, $opcode2) = str_split($command);
-            $opcode = "$opcode1$opcode2";
+        while(true) {
+            $command = $this->memory[$this->memoryPointer];
+            $opcode = $command % 100;
+            $paramOneMode = ($command - $opcode) / 100 % 10;
+            $paramTwoMode = ($command - $opcode) / 1000 % 10;
+            $paramThreeMode = ($command - $opcode) / 10000 % 10;
 
-            $output->writeln("I: $this->i; Command: $command; Opcode: $opcode", OutputInterface::VERBOSITY_VERBOSE);
-
-            if ($opcode === '99') {
+            if ($opcode === self::OPCODE_HALT) {
                 $this->halted = true;
                 return;
             }
 
+            $paramOnePointer = $this->resolvePointer($paramOneMode, 1);
+            $paramTwoPointer = $this->resolvePointer($paramTwoMode, 2);
+            $paramThreePointer = $this->resolvePointer($paramThreeMode, 3);
+            $paramOne = $this->readMemory($paramOnePointer);
+            $paramTwo = $this->readMemory($paramTwoPointer);
+
             switch ($opcode) {
-                case '01':
-                    $paramOne = (int) (($modeParam1 === '0') ? $this->puzzleInput[$this->puzzleInput[$this->i + 1]] : $this->puzzleInput[$this->i + 1]);
-                    $paramTwo = (int) (($modeParam2 === '0') ? $this->puzzleInput[$this->puzzleInput[$this->i + 2]] : $this->puzzleInput[$this->i + 2]);
-                    $position = $this->puzzleInput[$this->i + 3];
-
-                    $this->puzzleInput[$position] = $paramOne + $paramTwo;
-                    $output->writeln("Adding $paramOne with $paramTwo; Storing at $position", OutputInterface::VERBOSITY_VERBOSE);
-                    $this->i += 4;
+                case self::OPCODE_ADDITION:
+                    $this->memory[$paramThreePointer] = bcadd($paramOne, $paramTwo);
+                    $this->memoryPointer += 4;
                     break;
-                case '02':
-                    $paramOne = (int) (($modeParam1 === '0') ? $this->puzzleInput[$this->puzzleInput[$this->i + 1]] : $this->puzzleInput[$this->i + 1]);
-                    $paramTwo = ($modeParam2 === '0') ? $this->puzzleInput[$this->puzzleInput[$this->i + 2]] : $this->puzzleInput[$this->i + 2];
-                    $position = $this->puzzleInput[$this->i + 3];
-
-                    $this->puzzleInput[$position] = $paramOne * $paramTwo;
-                    $output->writeln("Multiply $paramOne with $paramTwo; Storing at $position", OutputInterface::VERBOSITY_VERBOSE);
-                    $this->i += 4;
+                case self::OPCODE_MULTIPLICATION:
+                    $this->memory[$paramThreePointer] = bcmul($paramOne, $paramTwo);
+                    $this->memoryPointer += 4;
                     break;
-                case '03':
-                    $position = $this->puzzleInput[$this->i + 1];
-                    $inp = $in->dequeue();
-                    $this->puzzleInput[$position] = $inp;
-                    $output->writeln("Reading from input: $inp; Storing at $position", OutputInterface::VERBOSITY_VERBOSE);
-                    $this->i += 2;
+                case self::OPCODE_READ_INPUT:
+                    $this->memory[$paramOnePointer] = $in->dequeue();
+                    $this->memoryPointer += 2;
                     break;
-                case '04':
-                    $paramOne = (int) (($modeParam1 === '0') ? $this->puzzleInput[$this->puzzleInput[$this->i + 1]] : $this->puzzleInput[$this->i + 1]);
-                    $output->writeln("Diagnostic code $paramOne", OutputInterface::VERBOSITY_VERBOSE);
-                    $this->i += 2;
+                case self::OPCODE_WRITE_OUTPUT:
+                    $this->memoryPointer += 2;
                     $out->enqueue($paramOne);
-                    return;
+//                    return;
                     break;
-                case '05':
-                    $paramOne = (int) (($modeParam1 === '0') ? $this->puzzleInput[$this->puzzleInput[$this->i + 1]] : $this->puzzleInput[$this->i + 1]);
-                    $paramTwo = (int) (($modeParam2 === '0') ? $this->puzzleInput[$this->puzzleInput[$this->i + 2]] : $this->puzzleInput[$this->i + 2]);
-                    $output->writeln("Jump if true; Param one: $paramOne; Param two: $paramTwo", OutputInterface::VERBOSITY_VERBOSE);
-                    if ($paramOne !== 0) {
-                        $this->i = $paramTwo;
+                case self::OPCODE_JUMP_IF_TRUE:
+                    if (bccomp($paramOne, '0') !== 0) {
+                        $this->memoryPointer = $paramTwo;
                         break;
                     }
-                    $this->i += 3;
+                    $this->memoryPointer += 3;
                     break;
-                case '06':
-                    $paramOne = (int) (($modeParam1 === '0') ? $this->puzzleInput[$this->puzzleInput[$this->i + 1]] : $this->puzzleInput[$this->i + 1]);
-                    $paramTwo = (int) (($modeParam2 === '0') ? $this->puzzleInput[$this->puzzleInput[$this->i + 2]] : $this->puzzleInput[$this->i + 2]);
-                    $output->writeln("Jump if false; Param one: $paramOne; Param two: $paramTwo", OutputInterface::VERBOSITY_VERBOSE);
-                    if ($paramOne === 0) {
-                        $this->i = $paramTwo;
+                case self::OPCODE_JUMP_IF_FALSE:
+                    if (bccomp($paramOne, '0') === 0) {
+                        $this->memoryPointer = (int) $paramTwo;
                         break;
                     }
-                    $this->i += 3;
+                    $this->memoryPointer += 3;
                     break;
-                case '07':
-                    $paramOne = (int) (($modeParam1 === '0') ? $this->puzzleInput[$this->puzzleInput[$this->i + 1]] : $this->puzzleInput[$this->i + 1]);
-                    $paramTwo = (int) (($modeParam2 === '0') ? $this->puzzleInput[$this->puzzleInput[$this->i + 2]] : $this->puzzleInput[$this->i + 2]);
-                    $paramThree = (int) $this->puzzleInput[$this->i + 3];
-                    $output->writeln("Less than; Param one: $paramOne; Param two: $paramTwo; Param three: $paramThree", OutputInterface::VERBOSITY_VERBOSE);
-                    if ($paramOne < $paramTwo) {
-                        $this->puzzleInput[$paramThree] = 1;
+                case self::OPCODE_LESS_THEN:
+                    if (bccomp($paramOne, $paramTwo) === -1) {
+                        $this->memory[$paramThreePointer] = '1';
                     } else {
-                        $this->puzzleInput[$paramThree] = 0;
+                        $this->memory[$paramThreePointer] = '0';
                     }
-                    $this->i += 4;
+                    $this->memoryPointer += 4;
                     break;
-                case '08':
-                    $paramOne = (int) (($modeParam1 === '0') ? $this->puzzleInput[$this->puzzleInput[$this->i + 1]] : $this->puzzleInput[$this->i + 1]);
-                    $paramTwo = (int) (($modeParam2 === '0') ? $this->puzzleInput[$this->puzzleInput[$this->i + 2]] : $this->puzzleInput[$this->i + 2]);
-                    $paramThree = (int) $this->puzzleInput[$this->i + 3];
-                    $output->writeln("Equals; Param one: $paramOne; Param two: $paramTwo; Param three: $paramThree", OutputInterface::VERBOSITY_VERBOSE);
-                    if ($paramOne === $paramTwo) {
-                        $this->puzzleInput[$paramThree] = 1;
+                case self::OPCODE_EQUALS:
+                    if (bccomp($paramOne, $paramTwo) === 0) {
+                        $this->memory[$paramThreePointer] = '1';
                     } else {
-                        $this->puzzleInput[$paramThree] = 0;
+                        $this->memory[$paramThreePointer] = '0';
                     }
-                    $this->i += 4;
+                    $this->memoryPointer += 4;
+                    break;
+                case self::OPCODE_SET_RELATIVE_BASE:
+                    $this->relativeBase += (int) $paramOne;
+                    $this->memoryPointer += 2;
                     break;
                 default:
                     throw new \Exception("No such opcode: $opcode");
@@ -124,8 +130,31 @@ class RealIntCodeComputer
         }
     }
 
+    private function resolvePointer(int $mode, $offset): string
+    {
+        switch ($mode) {
+            case self::PARAMETER_POSITION_MODE:
+                return $this->readMemory((string) ($this->memoryPointer + $offset));
+            case self::PARAMETER_IMMEDIATE_MODE:
+                return (string) ($this->memoryPointer + $offset);
+            case self::PARAMETER_RELATIVE_MODE:
+                return (string) ((int) $this->readMemory((string) ($this->memoryPointer + $offset)) + $this->relativeBase);
+            default:
+                throw new \Exception("Bad parameter mode: $mode");
+        }
+    }
+
     public function isHalted(): bool
     {
         return $this->halted;
+    }
+
+    private function readMemory(string $pointer): string
+    {
+        if (! array_key_exists($pointer, $this->memory)) {
+            return '0';
+        }
+
+        return (string) $this->memory[$pointer];
     }
 }

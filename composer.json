@@ -13,7 +13,8 @@
         "doctrine/collections": "^1.6",
         "monolog/monolog": "^2.0",
         "graphp/algorithms": "^0.8.1",
-      "ext-readline": "*"
+      "ext-readline": "*",
+      "ext-bcmath": "*"
     },
     "autoload": {
         "psr-4": {

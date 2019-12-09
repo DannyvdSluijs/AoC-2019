@@ -33,16 +33,16 @@ class Puzzle7Part2 extends Command
                             $amplifierFive = new RealIntCodeComputer($this->getPuzzleInput());
 
                             $a = new \SplQueue();
-                            $a->enqueue($p1);
-                            $a->enqueue(0);
+                            $a->enqueue((string) $p1);
+                            $a->enqueue('0');
                             $b = new \SplQueue();
-                            $b->enqueue($p2);
+                            $b->enqueue((string) $p2);
                             $c = new \SplQueue();
-                            $c->enqueue($p3);
+                            $c->enqueue((string) $p3);
                             $d = new \SplQueue();
-                            $d->enqueue($p4);
+                            $d->enqueue((string) $p4);
                             $e = new \SplQueue();
-                            $e->enqueue($p5);
+                            $e->enqueue((string) $p5);
 
                             while (! $amplifierFive->isHalted()) {
                                 $amplifierOne->run($output, $a, $b);
