@@ -46,8 +46,13 @@ class RealIntCodeComputer
         $this->memory[$address] = $value;
     }
 
-    public function run(OutputInterface $output, splQueue $in, splQueue $out, callable $outPutCallback = null): void
-    {
+    public function run(
+        OutputInterface $output,
+        splQueue $in,
+        splQueue $out,
+        callable $outputCallback = null,
+        callable $inputCallback = null
+    ): void {
         $this->output = $output;
 
         if ($this->halted) {
@@ -82,14 +87,17 @@ class RealIntCodeComputer
                     $this->memoryPointer += 4;
                     break;
                 case self::OPCODE_READ_INPUT:
+                    if ($inputCallback !== null) {
+                        $inputCallback($in, $out);
+                    }
                     $this->memory[$paramOnePointer] = $in->dequeue();
                     $this->memoryPointer += 2;
                     break;
                 case self::OPCODE_WRITE_OUTPUT:
                     $this->memoryPointer += 2;
                     $out->enqueue($paramOne);
-                    if ($outPutCallback !== null) {
-                        $outPutCallback();
+                    if ($outputCallback !== null) {
+                        $outputCallback($in, $out);
                     }
                     break;
                 case self::OPCODE_JUMP_IF_TRUE:
