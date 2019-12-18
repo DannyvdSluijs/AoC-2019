@@ -33,5 +33,9 @@ $application->add(new Command\Puzzle13Part1());
 $application->add(new Command\Puzzle13Part2());
 $application->add(new Command\Puzzle14Part1());
 $application->add(new Command\Puzzle14Part2());
+$application->add(new Command\Puzzle15Part1());
+$application->add(new Command\Puzzle16Part1());
+$application->add(new Command\Puzzle17Part1());
+$application->add(new Command\Puzzle17Part2());
 
 $application->run();
