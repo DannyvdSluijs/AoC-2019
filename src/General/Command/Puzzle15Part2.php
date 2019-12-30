@@ -10,7 +10,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class Puzzle15Part1 extends Command
+class Puzzle15Part2 extends Command
 {
     private const WIDTH = 22;
     private const HEIGHT = 22;
@@ -35,7 +35,7 @@ class Puzzle15Part1 extends Command
     private const OXYGEN_SYSTEM = 'o';
 
 
-    protected static $defaultName = 'puzzle-15-part-1';
+    protected static $defaultName = 'puzzle-15-part-2';
     private $grid;
     /** @var OutputInterface */
     private $output;
@@ -145,6 +145,39 @@ class Puzzle15Part1 extends Command
             $this->grid[0][0] = 's';
             foreach ($this->grid as $row) {
                 $output->writeln(implode($row));
+            }
+
+            /* Work from here */
+            $t = 0;
+            while(true) {
+                $t++;
+                $clone = $this->grid;
+                foreach ($clone as $y => $lines) {
+                    foreach ($lines as $x => $char) {
+                        if ($char !== 'o') {
+                            continue;
+                        }
+
+                        if ($clone[$y][$x+1] === '.') {
+                            $this->grid[$y][$x+1] = 'o';
+                        }
+                        if ($clone[$y][$x-1] === '.') {
+                            $this->grid[$y][$x-1] = 'o';
+                        }
+                        if ($clone[$y+1][$x] === '.') {
+                            $this->grid[$y+1][$x] = 'o';
+                        }
+                        if ($clone[$y-1][$x] === '.') {
+                            $this->grid[$y-1][$x] = 'o';
+                        }
+                    }
+                }
+
+                $gridAsString = implode(array_map('implode', $this->grid));
+                if (strpos( $gridAsString, '.') === false) {
+                    echo $t;
+                    exit(1);
+                }
             }
 
             $output->writeln($e->getMessage());
